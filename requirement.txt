@@ -1,0 +1,3 @@
+expo vector icons are used 
+react native paper  is used 
+
