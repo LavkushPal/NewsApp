@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   container: {
-    marginTop: 20,
+    marginTop: 19,
     alignItems: "center",
   },
   articlesImage: {

@@ -42,7 +42,7 @@ export default function ProfileScreen({ navigation }) {
         email,
         password
       );
-      Alert.alert("Success 😍", `Logged in as ${userVerification.user}`);
+      Alert.alert("Success 😍", `Logged in now`);
       setIsSignedIn(true);
       navigation.navigate("HomeTabs");
     } catch (error) {
@@ -115,9 +115,14 @@ export default function ProfileScreen({ navigation }) {
         secureTextEntry={true}
       />
 
-      <TouchableOpacity onPress={() => signup(isEmail, isPassword)}>
-        <Text style={styles.button_update}>sign up</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={() => signup(isEmail, isPassword)}>
+          <Text style={styles.button_update}>sign up</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => signin(isEmail, isPassword)}>
+          <Text style={styles.button_update}>sign in</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -152,8 +157,11 @@ const styles = StyleSheet.create({
     marginBottom: 20, // Add space below the image
   },
   buttonContainer: {
-    width: "100%", // Buttons take full width of the form
+    flexDirection: "row", // Arrange buttons horizontally
+    width: "60%", // Buttons take full width of the form
+    height: "auto", // Allow height to adjust dynamically
     marginTop: 10, // Space between the image and buttons
+    justifyContent: "space-between", // Space evenly between the buttons
   },
   button: {
     backgroundColor: "#cca",
