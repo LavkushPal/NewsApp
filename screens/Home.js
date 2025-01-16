@@ -7,68 +7,70 @@ import {
   SafeAreaView,
   FlatList,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 
-const DATA = [
-  { id: "1", title: "World News" },
-  { id: "2", title: "Tech" },
-  { id: "3", title: "Sports" },
-  { id: "4", title: "Weather" },
-  { id: "5", title: "World News" },
-  { id: "6", title: "Tech" },
-  { id: "7", title: "Sports" },
-  { id: "8", title: "Weather" },
-];
+import {useState,useEffect} from "react";
 
-const Articles = {
-  status: "ok",
-  totalResults: 2,
-  articles: [
-    {
-      source: { id: "1", name: "CounterPunch" },
-      author: "Jeffrey St. Clair",
-      title: "Hell and High Water: the Year in Climate Chaos",
-      description: "2024 will be the warmest year on record...",
-      url: "https://www.counterpunch.org/2024/12/20/hell-and-high-water-the-year-in-climate-chaos/",
-      urlToImage: "https://www.counterpunch.org/wp-content/uploads/2024/12/flaglongview-scaled.jpeg",
-      publishedAt: "2024-12-20T06:59:11Z",
-      content: "Industrial plants, Port of Longview...",
-    },
-    {
-      source: { id:"2", name: "Neuwritesd.org" },
-      author: "Vani Taluja",
-      title: "A 3D Camera for the Brain: The Simplified Science of MRI",
-      description: "Have you ever dreamed of having Superman’s power of “X-Ray Vision”...",
-      url: "https://neuwritesd.org/2024/12/19/a-3d-camera-for-the-brain-the-simplified-science-of-mri/",
-      urlToImage: "https://neuwritesd.org/wp-content/uploads/2024/12/mris.jpeg?w=1200",
-      publishedAt: "2024-12-20T04:52:29Z",
-      content: "Posted by Vani Taluja on December 19, 2024...",
-    },
-    {
-      source: { id: "1", name: "CounterPunch" },
-      author: "Jeffrey St. Clair",
-      title: "Hell and High Water: the Year in Climate Chaos",
-      description: "2024 will be the warmest year on record...",
-      url: "https://www.counterpunch.org/2024/12/20/hell-and-high-water-the-year-in-climate-chaos/",
-      urlToImage: "https://www.counterpunch.org/wp-content/uploads/2024/12/flaglongview-scaled.jpeg",
-      publishedAt: "2024-12-20T06:59:11Z",
-      content: "Industrial plants, Port of Longview...",
-    },
-    {
-      source: { id:"2", name: "Neuwritesd.org" },
-      author: "Vani Taluja",
-      title: "A 3D Camera for the Brain: The Simplified Science of MRI",
-      description: "Have you ever dreamed of having Superman’s power of “X-Ray Vision”...",
-      url: "https://neuwritesd.org/2024/12/19/a-3d-camera-for-the-brain-the-simplified-science-of-mri/",
-      urlToImage: "https://neuwritesd.org/wp-content/uploads/2024/12/mris.jpeg?w=1200",
-      publishedAt: "2024-12-20T04:52:29Z",
-      content: "Posted by Vani Taluja on December 19, 2024...",
-    },
-  ],
-}
+const DATA = [
+  { id: "1", title: "technology" },
+  { id: "2", title: "general" },
+  { id: "3", title: "sports" },
+  { id: "4", title: "science" },
+  { id: "5", title: "health" },
+  { id: "6", title: "business" },
+  { id: "7", title: "entertainment" },
+];
 
 
 export default function Home({navigation}) {
+  const [ isPressed,setIsPressed] = useState(false);
+  const [postList, setPostList] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("technology");
+  const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+
+  const fetchData = async (cat) => {
+    try {
+      const response = await fetch(
+        `https://newsapi.org/v2/top-headlines?category=${cat}&apiKey=6fa703fd45ab4eadb38ffe41788b223b`
+      );
+      const data = await response.json();
+      setPostList(data.articles);
+      setIsLoading(false);
+    } catch (error) {
+      console.log("Error occurred while fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(selectedCategory);
+  }, [selectedCategory]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    try{
+      fetchData(selectedCategory);
+    }
+    catch(error){
+      console.log("error during refresh", error);
+    }
+    finally{
+          setRefreshing(false);
+    }
+    
+  };
+
+  if(isLoading){
+    return(
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>wait, we're fetching the data...</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe_view}>
       <View style={styles.container}>
@@ -77,10 +79,19 @@ export default function Home({navigation}) {
             data={DATA}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <Pressable
-                onPress={() =>
-                  console.log(`${item.title}  category is pressed`)
-                }
+              <Pressable 
+                onPress={ ()=> setSelectedCategory(item.title)}
+                style={({ pressed }) => [
+ 
+                  { 
+                    borderRadius: 10,
+                    color: pressed ? '#f5f5f5' : '#1C6E8C', // Change color when pressed
+                    backgroundColor: pressed? '#1C6E8C' :  '#f5f5f5',
+                    opacity: pressed ? 0.7 : 1, // Change opacity to show it is active
+                  }
+                ]}
+                
+              
               >
                 <View style={styles.item}>
                   <Text style={styles.title}>{item.title}</Text>
@@ -94,12 +105,12 @@ export default function Home({navigation}) {
 
         <View style={styles.article_container}>
           <FlatList
-            data={Articles.articles}
+            data={postList}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <Pressable style={styles.eachArticles} onPress={ ()=> navigation.navigate("DetailScreen",{article:item})}>
                 <Image
-                  source={{ uri: item.urlToImage }}
+                  source={{ uri: item.urlToImage || 'https://www.counterpunch.org/wp-content/uploads/2024/12/flaglongview-scaled.jpeg'  }}
                   style={styles.articlesImage}
                 />
                 <View style={styles.newsDescription}>
@@ -113,6 +124,8 @@ export default function Home({navigation}) {
                 </View>
               </Pressable>
             )}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
           />
         </View>
       </View>
@@ -121,8 +134,20 @@ export default function Home({navigation}) {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer:{
+    paddingTop:30,
+    margin:30,
+    justifyContent:"center",
+    alignItems:"center",
+    backgroundColor:"#f9f9f9",
+    borderRadius:10,
+    shadowOffset:{width:0,height:5},
+    shadowColor:"black",
+    shadowOpacity:1
+  },
   safe_view: {
     flex: 1,
+    
   },
   container: {
     padding: 10,
@@ -130,23 +155,29 @@ const styles = StyleSheet.create({
     width: 400,
     height: 600,
   },
+  categories:{
+
+  },
   item: {
     padding: 10,
-    backgroundColor: "#1C6E8C",
+    backgroundColor: "#f5f5f5",
     marginHorizontal: 10,
     borderRadius: 10,
+    borderWidth:1,
+    borderColor:"#1C6E8C"
   },
   title: {
     fontSize: 20,
-    color: "white",
+    color: "#1C6E8C",
   },
   article_container: {
     marginTop: 30,
   },
   eachArticles: {
     marginBottom: 30,
-    width: 380,
-    height: 320,
+    marginLeft:10,
+    width: "95%",
+    height: "auto",
     borderWidth:1,
     backgroundColor:"white",
     // borderColor:"#1C6E8C",
@@ -158,7 +189,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   articlesImage: {
-    width: 380,
+    width: "100%",
     height: 200,
     borderRadius: 7,
   },

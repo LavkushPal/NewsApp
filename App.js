@@ -7,12 +7,17 @@ import {
   PaperProvider,
 } from "react-native-paper";
 
-import { TouchableOpacity } from "react-native";
+
+import { Provider } from "react-redux";
+import store from "./store.js";
+
+import { View, TouchableOpacity } from "react-native";
 import Home from "./screens/Home.js";
 import Search from "./screens/SearchNews.js";
 import Saved from "./screens/SavedArticles.js";
 import DetailScreen from "./screens/DetailScreen.js";
 import ProfileScreen from "./screens/ProfileScreen.js";
+import SignScreen from "./screens/SignScreen.js";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -34,6 +39,31 @@ const HomeStack = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen name="DetailScreen" component={DetailScreen} />
+    
+  </Stack.Navigator>
+);
+
+const SavedStack = () => (
+  <Stack.Navigator initialRouteName="Saved Articles">
+    <Stack.Screen
+      name="Saved Articles"
+      component={Saved}
+      options={{ headerShown:true}}
+    />
+    <Stack.Screen name="DetailScreen" component={DetailScreen} />
+    
+  </Stack.Navigator>
+);
+
+const SearchStack = () => (
+  <Stack.Navigator initialRouteName="Searched Articles">
+    <Stack.Screen
+      name="Searched Articles"
+      component={Search}
+      options={{ headerShown:true}}
+    />
+    <Stack.Screen name="DetailScreen" component={DetailScreen} />
+    
   </Stack.Navigator>
 );
 
@@ -56,18 +86,27 @@ const HomeTabs = () => (
           <Ionicons name="home" size={20} color={color} />
         ),
         headerRight: () => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate("ProfileScreen")}
-            style={{ marginRight: 15 }}
-          >
-            <Ionicons name="person" size={20} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", marginRight: 15 }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("SignScreen")}
+              style={{ marginRight: 15 }}
+            >
+              <Ionicons name="log-in-outline" size={23} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ProfileScreen")}
+              style={{ marginRight: 15 }}
+            >
+              <Ionicons name="person" size={20} />
+            </TouchableOpacity>
+          </View>
         ),
       })}
     />
     <Tab.Screen
       name="Search"
-      component={Search}
+      component={SearchStack}
       options={{
         tabBarIcon: ({ color }) => (
           <Ionicons name="search" size={20} color={color} />
@@ -76,10 +115,10 @@ const HomeTabs = () => (
     />
     <Tab.Screen
       name="Saved"
-      component={Saved}
+      component={SavedStack}
       options={{
         tabBarIcon: ({ color }) => (
-          <Ionicons name="save" size={20} color={color} />
+          <Ionicons name="bookmark" size={20} color={color} />
         ),
       }}
     />
@@ -95,16 +134,17 @@ const AppStack = () => (
       options={{ headerShown: false }}
     />
     <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+    <Stack.Screen name="SignScreen" component={SignScreen} />
   </Stack.Navigator>
 );
 
 // Main App component
 export default function App() {
   return (
-    <PaperProvider theme={theme}>
+    <Provider store={store}>
       <NavigationContainer>
         <AppStack />
       </NavigationContainer>
-    </PaperProvider>
+    </Provider>
   );
 }

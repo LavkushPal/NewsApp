@@ -1,23 +1,72 @@
+import React from "react";
 import {
   Image,
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
+  ScrollView,
+  Pressable,
+  Alert,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { db } from "../firebase";
+import { collection, addDoc, doc, deleteDoc } from "firebase/firestore";
+import { saveArticle, deleteArticle } from "../store";
 
 export default function DetailScreen({ route }) {
   const { article } = route.params;
+  const dispatch = useDispatch();
+
+  // Access saved articles from the global state
+  const savedArticles = useSelector((state) => state.articles.savedArticles);
+
+  // Check if the article is already saved
+  const isSaved = savedArticles.some((saved) => saved.title === article.title);
+  const savedArticle = savedArticles.find(
+    (saved) => saved.title === article.title
+  );
+
+  const storeArticle = async (article) => {
+    try {
+      const docRef = await addDoc(collection(db, "articles"), {
+        title: article.title,
+        description: article.description,
+        urlToImage: article.urlToImage,
+        author: article.author,
+        publishedAt: article.publishedAt,
+      });
+      // Save the article in Redux with the doc ID
+      dispatch(saveArticle({ article, docId: docRef.id }));
+      Alert.alert("Success", "Article saved successfully");
+    } catch (error) {
+      Alert.alert("Error", `Error occurred while saving article: ${error}`);
+    }
+  };
+
+  const deleteArticleFromDB = async (docId) => {
+    try {
+      const docRef = doc(db, "articles", docId);
+      await deleteDoc(docRef);
+      // Remove the article from Redux
+      dispatch(deleteArticle(docId));
+      Alert.alert("Success", "Article deleted successfully");
+      
+    } catch (error) {
+      Alert.alert("Error", `Error occurred while deleting article: ${error}`);
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.safe_view}>
+    <ScrollView style={styles.safe_view}>
       <View style={styles.container}>
-        <Image source={{ uri:article.urlToImage }} style={styles.articlesImage} />
+        <Image
+          source={{ uri: article.urlToImage }}
+          style={styles.articlesImage}
+        />
         <View style={styles.newsDescription}>
           <View style={styles.articlesHeading}>
-            <Text style={styles.articlesHeadingText}>
-              {article.title}
-            </Text>
+            <Text style={styles.articlesHeadingText}>{article.title}</Text>
           </View>
           <View style={styles.articleDescription}>
             <Text style={styles.articleDescriptionText}>
@@ -27,49 +76,61 @@ export default function DetailScreen({ route }) {
           <View style={styles.articlesAuthorDate}>
             <Text> {article.author}</Text>
             <Text> {article.publishedAt}</Text>
+
+            {/* Render Save or Delete Button Based on State */}
+            {!isSaved ? (
+              <Pressable onPress={() => storeArticle(article)}>
+                <Ionicons name="bookmark-outline" size={24} color="black" />
+              </Pressable>
+            ) : (
+              <Pressable onPress={() => deleteArticleFromDB(savedArticle.docId)}>
+                <Ionicons name="bookmark" size={24} color="black" />
+              </Pressable>
+            )}
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   safe_view: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
+    paddingHorizontal: 10,
   },
   container: {
-    padding: 10,
     marginTop: 20,
-    width: 400,
-    height: 600,
+    alignItems: "center",
   },
   articlesImage: {
-    width: 400,
-    height: 200,
+    width: "95%",
+    height: 300,
     borderRadius: 10,
+    marginBottom: 10,
   },
   newsDescription: {
     flex: 1,
-    margin: 15,
+    paddingHorizontal: 10,
   },
   articlesHeading: {
-    flex: 1,
     marginBottom: 10,
-    justifyContent: "center",
     alignItems: "center",
   },
   articlesHeadingText: {
     fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
   },
-  articleDescription:{
-    flex:1,
-    justifyContent:"center",
-    alignItems:"center",
-    marginBottom:20,
+  articleDescription: {
+    marginBottom: 10,
+    height: "auto",
   },
-  articleDescriptionText:{
-    fontSize:10,
+  articleDescriptionText: {
+    fontSize: 16,
+    lineHeight: 22,
+    textAlign: "center",
   },
   articlesAuthorDate: {
     flexDirection: "row",
