@@ -1,3 +1,11 @@
-expo vector icons are used 
-react native paper  is used 
 
+react
+react-native
+@react-navigation/native
+@react-navigation/bottom-tabs
+@react-navigation/stack
+react-native-paper
+firebase
+redux
+react-redux
+@expo/vector-icons
